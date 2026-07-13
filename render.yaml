@@ -9,7 +9,7 @@ services:
     # ⚠️  IMPORTANT: Replace this name with the exact name of your
     #    frontend Static Site on the Render dashboard.
     #    This must match for Blueprint sync to work.
-    name: ironfit-elite-gym-frontend
+    name: ironfit-elite-gym-management-1
     env: static
     buildCommand: npm run build
     staticPublishPath: ./dist
