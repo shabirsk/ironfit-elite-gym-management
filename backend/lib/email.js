@@ -72,7 +72,14 @@ export const sendEmail = async ({ to, subject, html }) => {
     });
     return { success: true, messageId: info.messageId };
   } catch(e) {
-    console.error("[Email] Send failed:", e.message);
+    console.error("[Email] Full SMTP Error:", {
+      message: e.message,
+      code: e.code,
+      command: e.command,
+      response: e.response,
+      responseCode: e.responseCode,
+      stack: e.stack
+    });
     return { success: false, error: e.message };
   }
 };
