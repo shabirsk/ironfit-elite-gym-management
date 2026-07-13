@@ -84,33 +84,6 @@ app.post('/api/payments/razorpay/webhook', express.raw({ type: 'application/json
 app.get('/api/whatsapp/webhook', (await import('./controllers/whatsappController.js')).verifyWebhook);
 app.post('/api/whatsapp/webhook', express.raw({ type: 'application/json' }), (await import('./controllers/whatsappController.js')).handleWebhook);
 
-// TEMPORARY: Admin fix endpoint — REMOVE AFTER USE
-app.post('/api/fix-admin', express.json(), async (req, res) => {
-  const { fixSecret } = req.body;
-  if (fixSecret !== 'IRONFIT_FIX_2026_SECRET_ABCD1234') {
-    return res.status(403).json({ message: 'Invalid secret' });
-  }
-  try {
-    const User = (await import('./models/User.js')).default;
-    let admin = await User.findOne({ email: 'admin@ironfit.com' });
-    if (admin) {
-      admin.password = 'admin123';
-      await admin.save();
-      return res.json({ message: 'Admin password reset to admin123' });
-    }
-    await User.create({
-      email: 'admin@ironfit.com',
-      password: 'admin123',
-      fullName: 'Admin',
-      role: 'admin',
-      isActive: true,
-    });
-    res.json({ message: 'Admin user created: admin@ironfit.com / admin123' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // Body parser with size limit (100kb handles workout plans with many exercises)
 app.use(express.json({ limit: '100kb' }));
 
