@@ -187,7 +187,7 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${env.frontendUrl}/member/reset-password/${rawToken}?email=${encodeURIComponent(email)}`;
 
     // Send email
-    await sendEmailWithLog({
+    const result = await sendEmailWithLog({
       to: email,
       category: 'auth',
       automation: 'password-reset',
@@ -215,6 +215,15 @@ export const forgotPassword = async (req, res) => {
         </table></body></html>
       `,
     });
+
+    if (!result.success) {
+      console.error('[ForgotPassword] Email failed:', result.error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send reset email.",
+        error: result.error
+      });
+    }
 
     res.json({ message: 'If an account with that email exists, a reset link has been sent.' });
   } catch (error) {
