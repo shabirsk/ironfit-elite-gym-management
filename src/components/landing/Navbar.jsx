@@ -55,6 +55,12 @@ const Navbar = () => {
         {/* Action Buttons */}
         <div className="hidden md:flex items-center gap-4">
           <Link
+            to="/admin/login"
+            className="text-xs font-medium tracking-wide text-iron-light/50 hover:text-iron-light/90 transition-colors uppercase"
+          >
+            Admin
+          </Link>
+          <Link
             to="/member/login"
             className="text-sm font-medium tracking-wide text-iron-light hover:text-iron-gold transition-colors"
           >
@@ -96,6 +102,9 @@ const Navbar = () => {
             </a>
           ))}
           <div className="h-px bg-white/10 w-full my-2"></div>
+          <Link to="/admin/login" className="text-base font-medium text-iron-light/50">
+            Admin Login
+          </Link>
           <Link to="/member/login" className="text-lg font-medium text-iron-light">
             Member Login
           </Link>
