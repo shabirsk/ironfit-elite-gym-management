@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
 import env from '../config/env.js';
 import AutomationLog from '../models/AutomationLog.js';
 
@@ -22,6 +23,9 @@ const getTransporter = () => {
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
+    lookup: (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4 }, callback);
+    },
   });
 
   transporter.verify()
@@ -257,3 +261,6 @@ export const sendWorkoutAssignment = async (member, workout) => {
     ])
   );
 };
+
+// Initialize and verify transporter on application startup
+getTransporter();
