@@ -1,3 +1,5 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -141,6 +143,32 @@ app.get('/api/public/stats', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// ========== Frontend static file serving + SPA routing ==========
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, '..', 'dist');
+
+// Serve built frontend assets (JS, CSS, images, fonts, etc.)
+app.use(express.static(distPath));
+
+// SPA fallback: serve index.html for all non-API GET requests
+// This is essential for React Router client-side routing — refreshing
+// or directly navigating to /member/dashboard, /admin/dashboard, etc.
+// would otherwise return 404 because those paths don't exist on the server.
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ message: 'API route not found' });
+  }
+  res.sendFile(path.join(distPath, 'index.html'), (err) => {
+    if (err) {
+      res.status(500).send('Frontend not found. Run npm run build first.');
+    }
+  });
+});
+
+// ========== Error handling middleware ==========
 
 // Multer/file-size/file-filter error handler
 app.use((err, req, res, next) => {
