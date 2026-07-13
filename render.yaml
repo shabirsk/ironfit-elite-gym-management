@@ -1,0 +1,11 @@
+services:
+  # Backend Web Service — builds the frontend then starts the Express API server
+  - type: web
+    name: ironfit-elite-gym-management
+    env: node
+    buildCommand: npm install && cd backend && npm install && cd .. && npm run build
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
