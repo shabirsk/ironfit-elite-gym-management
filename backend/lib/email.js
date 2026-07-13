@@ -6,12 +6,15 @@ let transporter = null;
 
 const getTransporter = () => {
   if (transporter) return transporter;
-  if (!env.smtpHost || !env.smtpUser || !env.smtpPass) {
-    console.warn("[Email] SMTP not configured.");
+  if (!env.smtpHost || !env.smtpUser || !env.smtpPass || !env.smtpPort || !env.adminEmail) {
+    console.warn("[Email] SMTP not configured. Missing required environment variables.");
     return null;
   }
+  const cleanHost = env.smtpHost.trim().replace(/^["']|["']$/g, '');
+  console.log(`[Email] Connecting to SMTP Host: "${cleanHost}" (Original: "${env.smtpHost}")`);
+
   transporter = nodemailer.createTransport({
-    host: env.smtpHost,
+    host: cleanHost,
     port: env.smtpPort,
     secure: env.smtpPort === 465,
     auth: { user: env.smtpUser, pass: env.smtpPass },

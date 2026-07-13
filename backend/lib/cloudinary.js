@@ -8,6 +8,9 @@ cloudinary.config({
 });
 
 export const uploadImage = async (filePath, options = {}) => {
+  if (!env.cloudinaryCloudName || !env.cloudinaryApiKey || !env.cloudinaryApiSecret) {
+    throw new Error('Cloudinary is not configured. Missing CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET.');
+  }
   const defaultOptions = {
     folder: 'ironfit-elite',
     use_filename: true,

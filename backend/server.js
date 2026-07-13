@@ -63,6 +63,7 @@ app.use(sanitizeMiddleware);
 app.use(validateObjectId);
 
 // Rate limiting for auth routes (increased for tests)
+app.set('trust proxy', 1);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // Limit each IP to 1000 requests per windowMs

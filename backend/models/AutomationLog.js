@@ -4,7 +4,7 @@ const automationLogSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['membership', 'lead', 'attendance', 'payment', 'revenue', 'whatsapp', 'system'],
+    enum: ['membership', 'lead', 'attendance', 'payment', 'revenue', 'whatsapp', 'system', 'auth'],
     index: true,
   },
   automation: {

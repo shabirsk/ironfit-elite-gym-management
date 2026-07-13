@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { uploadImage, deleteImage, updateImage, extractPublicId, getAllImages } from '../lib/cloudinary.js';
 import { validateImageMagicBytes } from '../lib/sanitize.js';
 import AutomationLog from '../models/AutomationLog.js';
+import GalleryImage from '../models/GalleryImage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempDir = path.join(__dirname, '..', 'temp');
@@ -42,7 +43,18 @@ export const uploadSingleImage = async (req, res) => {
     const resource = req.body.resource || req.query.resource || 'general';
     const result = await uploadImage(req.file.path, { folder: folder + '/' + resource });
     fs.unlink(req.file.path, () => {});
-    res.json({ success: true, publicId: result.public_id, url: result.secure_url, width: result.width, height: result.height, format: result.format });
+    
+    // Save to MongoDB
+    const galleryImage = await GalleryImage.create({
+      publicId: result.public_id,
+      url: result.secure_url,
+      width: result.width,
+      height: result.height,
+      format: result.format,
+      folder: folder + '/' + resource
+    });
+
+    res.json({ success: true, publicId: result.public_id, url: result.secure_url, width: result.width, height: result.height, format: result.format, _id: galleryImage._id });
   } catch(error) {
     if (req.file) fs.unlink(req.file.path, () => {});
     res.status(500).json({ message: 'Upload failed', error: error.message });
@@ -51,8 +63,18 @@ export const uploadSingleImage = async (req, res) => {
 
 export const fetchImages = async (req, res) => {
   try {
-    const images = await getAllImages();
-    res.json(images);
+    const images = await GalleryImage.find().sort({ createdAt: -1 });
+    // Map to Cloudinary response format for frontend compatibility
+    const formattedImages = images.map(img => ({
+      public_id: img.publicId,
+      secure_url: img.url,
+      width: img.width,
+      height: img.height,
+      format: img.format,
+      created_at: img.createdAt,
+      _id: img._id
+    }));
+    res.json(formattedImages);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch images', error: error.message });
   }
@@ -63,6 +85,10 @@ export const deleteSingleImage = async (req, res) => {
     const { publicId } = req.params;
     if (!publicId) return res.status(400).json({ message: 'Public ID required' });
     const result = await deleteImage(publicId);
+    
+    // Delete from MongoDB
+    await GalleryImage.findOneAndDelete({ publicId: publicId });
+    
     res.json({ success: true, message: 'Image deleted', result });
   } catch(error) {
     res.status(500).json({ message: 'Delete failed', error: error.message });
@@ -76,6 +102,10 @@ export const deleteImageByUrl = async (req, res) => {
     const publicId = extractPublicId(url);
     if (!publicId) return res.status(400).json({ message: 'Invalid Cloudinary URL' });
     const result = await deleteImage(publicId);
+
+    // Delete from MongoDB
+    await GalleryImage.findOneAndDelete({ publicId: publicId });
+
     res.json({ success: true, message: 'Image deleted', publicId, result });
   } catch(error) {
     res.status(500).json({ message: 'Failed to delete image', error: error.message });
@@ -98,6 +128,21 @@ export const updateSingleImage = async (req, res) => {
     const resource = req.body.resource || req.query.resource || 'general';
     const result = await updateImage(req.file.path, oldPublicId, { folder: folder + '/' + resource });
     fs.unlink(req.file.path, () => {});
+
+    if (oldPublicId) {
+      await GalleryImage.findOneAndDelete({ publicId: oldPublicId });
+    }
+    
+    // Save to MongoDB
+    await GalleryImage.create({
+      publicId: result.public_id,
+      url: result.secure_url,
+      width: result.width,
+      height: result.height,
+      format: result.format,
+      folder: folder + '/' + resource
+    });
+
     res.json({ success: true, publicId: result.public_id, url: result.secure_url });
   } catch(error) {
     if (req.file) fs.unlink(req.file.path, () => {});
