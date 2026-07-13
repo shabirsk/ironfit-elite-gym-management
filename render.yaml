@@ -1,11 +1,19 @@
 services:
-  # Backend Web Service — builds the frontend then starts the Express API server
-  - type: web
-    name: ironfit-elite-gym-management
-    env: node
-    buildCommand: npm install && cd backend && npm install && cd .. && npm run build
-    startCommand: cd backend && npm start
-    healthCheckPath: /api/health
-    envVars:
-      - key: NODE_ENV
-        value: production
+  # ──────────────────────────────────────────────────────────────
+  # Frontend Static Site
+  # Fixes React Router SPA routing: serves index.html for all paths
+  # so that refreshing /member/login or /admin/dashboard returns the
+  # React app instead of a 404.
+  # ──────────────────────────────────────────────────────────────
+  - type: static
+    # ⚠️  IMPORTANT: Replace this name with the exact name of your
+    #    frontend Static Site on the Render dashboard.
+    #    This must match for Blueprint sync to work.
+    name: ironfit-elite-gym-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
