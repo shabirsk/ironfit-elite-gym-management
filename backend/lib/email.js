@@ -15,10 +15,13 @@ const getTransporter = () => {
   console.log(`[Email] Connecting to SMTP Host: "${cleanHost}" (Original: "${env.smtpHost}")`);
 
   transporter = nodemailer.createTransport({
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
     host: cleanHost,
     port: env.smtpPort,
-    secure: env.smtpPort === 465,
-    requireTLS: env.smtpPort === 587,
+    secure: Number(env.smtpPort) === 465,
+    requireTLS: Number(env.smtpPort) === 587,
     auth: { user: env.smtpUser, pass: env.smtpPass },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
