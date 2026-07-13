@@ -25,6 +25,9 @@ const getTransporter = async () => {
       console.warn(`[Email] Failed to resolve IPv4 for ${cleanHost}:`, err.message);
     }
 
+    console.log("[SMTP] Host passed to transporter:", hostAddress);
+    console.log("[SMTP] Host type:", typeof hostAddress);
+
     const transport = nodemailer.createTransport({
       pool: true,
       maxConnections: 5,
