@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -145,28 +146,32 @@ app.get('/api/public/stats', async (req, res) => {
 });
 
 // ========== Frontend static file serving + SPA routing ==========
+// This is required for React Router client-side routing.
+// Refreshing or directly navigating to /member/dashboard, /admin/dashboard, etc.
+// would otherwise return 404 because those paths don't exist on the server.
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, '..', 'dist');
 
-// Serve built frontend assets (JS, CSS, images, fonts, etc.)
-app.use(express.static(distPath));
+// Only enable frontend serving if the dist/ directory exists
+// (built by `npm run build` from the project root)
+if (fs.existsSync(path.join(distPath, 'index.html'))) {
+  // Serve built frontend static assets (JS, CSS, images, fonts, etc.)
+  app.use(express.static(distPath));
 
-// SPA fallback: serve index.html for all non-API GET requests
-// This is essential for React Router client-side routing — refreshing
-// or directly navigating to /member/dashboard, /admin/dashboard, etc.
-// would otherwise return 404 because those paths don't exist on the server.
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ message: 'API route not found' });
-  }
-  res.sendFile(path.join(distPath, 'index.html'), (err) => {
-    if (err) {
-      res.status(500).send('Frontend not found. Run npm run build first.');
+  // SPA fallback: serve index.html for all non-API GET requests
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ message: 'API route not found' });
     }
+    res.sendFile(path.join(distPath, 'index.html'));
   });
-});
+
+  console.log('✓ Frontend detected at dist/. SPA routing enabled.');
+} else {
+  console.warn('⚠ Frontend dist/ not found. SPA routing disabled.');
+}
 
 // ========== Error handling middleware ==========
 
