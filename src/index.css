@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ============================================
+   IRONFIT ELITE — Commercial SaaS Design System
+   ============================================ */
+
+:root {
+  /* ─── COLOR SYSTEM ─── */
+  --bg-main: #09090B;
+  --bg-surface: #111113;
+  --bg-card: #18181B;
+  --bg-card-hover: #27272A;
+  
+  --border-light: #27272A;
+  --border-medium: #3F3F46;
+  
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-focus: rgba(37, 99, 235, 0.2);
+  
+  --success: #22C55E;
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --danger: #EF4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+
+  /* Backward compatibility for old UI elements during transition */
+  --accent: var(--primary);
+  --accent-light: #60A5FA;
+  --bg-primary: var(--bg-main);
+  --black: #000;
+  
+  /* ─── TYPOGRAPHY & SPACING ─── */
+  --ff: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --body-size: 14px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  --t-fast: 0.15s ease;
+  --t-base: 0.25s ease;
+}
+
+/* ─── RESET & BASE ─── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-main);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--ff);
+  font-size: var(--body-size);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; background: transparent; }
+input, textarea, select { font-family: inherit; outline: none; }
+
+::selection {
+  background: var(--primary);
+  color: #fff;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ─── SAAS UTILITY CLASSES ─── */
+
+.saas-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--t-fast);
+}
+
+.saas-card:hover {
+  border-color: var(--border-medium);
+}
+
+.saas-table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.saas-table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-card);
+}
+
+.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.saas-table th {
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.saas-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.saas-table tr {
+  transition: background var(--t-fast);
+}
+
+.saas-table tbody tr:hover {
+  background: var(--bg-surface);
+}
+
+/* Forms & Inputs */
+.saas-input-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.saas-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.saas-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all var(--t-fast);
+}
+
+.saas-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+.saas-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Buttons */
+.saas-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all var(--t-fast);
+  cursor: pointer;
+}
+
+.saas-btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.saas-btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.saas-btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+.saas-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--border-medium);
+}
+
+.saas-btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: 1px solid transparent;
+}
+.saas-btn-danger:hover:not(:disabled) {
+  background: #DC2626;
+}
+
+.saas-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Badges */
+.saas-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.saas-badge.success { background: var(--success-bg); color: var(--success); }
+.saas-badge.warning { background: var(--warning-bg); color: var(--warning); }
+.saas-badge.danger { background: var(--danger-bg); color: var(--danger); }
+.saas-badge.neutral { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-light); }
+
+/* Helpers */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 12px; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.w-full { width: 100%; }
+
+/* Colors */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+
+/* Backgrounds */
+.bg-surface { background: var(--bg-surface); }
+.bg-card { background: var(--bg-card); }
+.bg-main { background: var(--bg-main); }
+
+/* Loading Animation */
+.saas-skeleton {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-card-hover) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

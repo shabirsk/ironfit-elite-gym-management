@@ -1,0 +1,200 @@
+.member-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mp-bg, #09090b);
+  padding: 16px;
+}
+
+.member-auth-container {
+  width: 100%;
+  max-width: 400px;
+  background: var(--mp-card, #111113);
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid var(--mp-border, #27272a);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+}
+
+.member-auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.member-auth-logo {
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.member-auth-logo span { color: #f97316; }
+.member-auth-logo small {
+  font-size: 10px;
+  font-weight: 500;
+  color: #f97316;
+  letter-spacing: 2px;
+  margin-left: 4px;
+}
+
+.member-auth-header h1 {
+  color: var(--mp-text, #fff);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: -0.5px;
+}
+
+.member-auth-header p {
+  color: var(--mp-text-secondary, #a1a1aa);
+  font-size: 14px;
+  margin: 0;
+}
+
+.member-auth-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--mp-danger, #ef4444);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.member-auth-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: var(--mp-success, #22c55e);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.member-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-auth-field label {
+  color: var(--mp-text-secondary, #a1a1aa);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.member-auth-field input {
+  background: var(--mp-surface, #18181b);
+  border: 1px solid var(--mp-border, #27272a);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--mp-text, #fff);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.member-auth-field input:focus {
+  border-color: var(--mp-primary, #2563eb);
+  background: rgba(37, 99, 235, 0.03);
+}
+
+.member-auth-field input::placeholder {
+  color: var(--mp-text-tertiary, #71717a);
+}
+
+.member-auth-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+}
+
+.member-auth-link {
+  color: var(--mp-primary, #2563eb);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.member-auth-link:hover {
+  color: #3b82f6;
+}
+
+.member-auth-submit {
+  background: linear-gradient(135deg, var(--mp-primary, #2563eb), #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+}
+.member-auth-submit:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37,99,235,0.3);
+}
+.member-auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+.member-auth-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.member-auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--mp-border, #27272a);
+}
+
+.member-auth-footer p {
+  color: var(--mp-text-tertiary, #71717a);
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.member-auth-footer a {
+  color: var(--mp-text, #fff);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+.member-auth-footer a:hover {
+  color: var(--mp-primary, #2563eb);
+}
+
+.member-auth-back {
+  margin-top: 12px;
+}
+
+.member-auth-back a {
+  color: var(--mp-text-tertiary, #71717a);
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.member-auth-back a:hover {
+  color: var(--mp-text, #fff);
+}

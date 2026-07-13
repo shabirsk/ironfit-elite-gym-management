@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Minimal resets only for the landing page */
+  .landing-page {
+    font-family: 'Inter', sans-serif;
+    color: #FFFFFF;
+    background-color: #050505;
+  }
+  
+  .landing-page h1, .landing-page h2, .landing-page h3, .landing-page h4, .landing-page h5, .landing-page h6 {
+    font-family: 'Oswald', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+  }
+}
