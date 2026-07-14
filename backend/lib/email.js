@@ -252,5 +252,3 @@ export const sendWorkoutAssignment = async (member, workout) => {
   );
 };
 
-// Initialize and verify transporter on application startup
-getTransporter();
