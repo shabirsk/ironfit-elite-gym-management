@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const defaultImage = "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=800";
+const defaultImageWebP = "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800";
 
 const Trainers = () => {
   const [trainers, setTrainers] = useState([]);
@@ -12,7 +13,6 @@ const Trainers = () => {
       try {
         const { getTrainers } = await import('../../api/trainers');
         const data = await getTrainers({ status: 'active' });
-        // Display top 4 trainers based on experience or just slice
         setTrainers(data.slice(0, 4));
       } catch (err) {
         console.error(err);
@@ -62,7 +62,13 @@ const Trainers = () => {
           <div className="text-center text-iron-gold font-cinematic text-2xl animate-pulse">Loading Coaches...</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {trainers.map((trainer, index) => (
+            {trainers.map((trainer, index) => {
+              const imgSrc = trainer.profileImage || defaultImage;
+              const imgSrcWebP = trainer.profileImage
+                ? trainer.profileImage.replace(/\.(jpg|jpeg|png)(\?.*)?$/, '$&') + (trainer.profileImage.includes('?') ? '&' : '?') + 'fm=webp'
+                : defaultImageWebP;
+              
+              return (
               <motion.div
                 key={trainer._id || trainer.fullName}
                 initial={{ opacity: 0, y: 50 }}
@@ -72,11 +78,16 @@ const Trainers = () => {
                 className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer"
               >
                 <div className="absolute inset-0">
-                  <img
-                    src={trainer.profileImage || defaultImage}
-                    alt={trainer.fullName}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 group-hover:rotate-1 filter grayscale contrast-125 group-hover:grayscale-0 group-hover:contrast-100"
-                  />
+                  <picture>
+                    <source srcSet={imgSrcWebP} type="image/webp" />
+                    <img
+                      src={imgSrc}
+                      alt={trainer.fullName}
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 group-hover:rotate-1 filter grayscale contrast-125 group-hover:grayscale-0 group-hover:contrast-100"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
                 </div>
                 
                 <div className="absolute inset-0 bg-gradient-to-t from-iron-black via-iron-black/50 to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-500"></div>
@@ -104,7 +115,8 @@ const Trainers = () => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

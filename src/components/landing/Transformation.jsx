@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { ArrowLeftRight } from 'lucide-react';
+
 const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
   const [value, setValue] = useState(0);
   const [started, setStarted] = useState(false);
@@ -152,12 +153,17 @@ const Transformation = () => {
               ref={containerRef}
             >
               {/* After Image (Background) */}
-              <img 
-                src="https://images.pexels.com/photos/1552106/pexels-photo-1552106.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                alt="After Transformation" 
-                className="absolute inset-0 w-full h-full object-cover select-none"
-                draggable={false}
-              />
+              <picture>
+                <source srcSet="https://images.pexels.com/photos/1552106/pexels-photo-1552106.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800" type="image/webp" />
+                <img 
+                  src="https://images.pexels.com/photos/1552106/pexels-photo-1552106.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                  alt="After Transformation" 
+                  className="absolute inset-0 w-full h-full object-cover select-none"
+                  draggable={false}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
               <div className="absolute top-6 right-6 bg-iron-gold text-iron-black text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-sm shadow-lg">
                 After
               </div>
@@ -167,13 +173,18 @@ const Transformation = () => {
                 className="absolute inset-0 w-full h-full z-10"
                 style={{ clipPath: clipPathBefore, willChange: 'clip-path' }}
               >
-                <img 
-                  src="https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                  alt="Before Transformation" 
-                  className="absolute inset-0 w-full h-full object-cover select-none filter grayscale sepia-[0.3]"
-                  draggable={false}
-                  style={{ transform: 'translateZ(0)' }}
-                />
+                <picture>
+                  <source srcSet="https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800" type="image/webp" />
+                  <img 
+                    src="https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                    alt="Before Transformation" 
+                    className="absolute inset-0 w-full h-full object-cover select-none filter grayscale sepia-[0.3]"
+                    draggable={false}
+                    loading="lazy"
+                    decoding="async"
+                    style={{ transform: 'translateZ(0)' }}
+                  />
+                </picture>
                 <div className="absolute top-6 left-6 bg-iron-dark/80 text-white backdrop-blur-md text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-sm shadow-lg">
                   Before
                 </div>

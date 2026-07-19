@@ -10,16 +10,18 @@ const testimonials = [
     id: 1,
     name: 'Alex Mercer',
     type: 'Elite Member',
-    text: '"The level of coaching here is unmatched. I’ve trained at top facilities globally, but IronFit Elite brings a Silicon Valley standard to fitness. Every detail is perfect."',
+    text: '"The level of coaching here is unmatched. I\'ve trained at top facilities globally, but IronFit Elite brings a Silicon Valley standard to fitness. Every detail is perfect."',
     image: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150',
+    imageWebP: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=150',
     rating: 5,
   },
   {
     id: 2,
     name: 'Samantha Reed',
     type: 'Pro Member',
-    text: '"Transformative. The trainers don’t just count reps; they reconstruct your entire lifestyle. The recovery zones alone are worth the membership."',
+    text: '"Transformative. The trainers don\'t just count reps; they reconstruct your entire lifestyle. The recovery zones alone are worth the membership."',
     image: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=150',
+    imageWebP: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=150',
     rating: 5,
   },
   {
@@ -28,6 +30,7 @@ const testimonials = [
     type: 'Basic Member',
     text: '"Even the basic membership feels VIP. The equipment is pristine, the atmosphere is focused, and everyone is there to put in the work."',
     image: 'https://images.pexels.com/photos/1431282/pexels-photo-1431282.jpeg?auto=compress&cs=tinysrgb&w=150',
+    imageWebP: 'https://images.pexels.com/photos/1431282/pexels-photo-1431282.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=150',
     rating: 5,
   },
   {
@@ -36,6 +39,7 @@ const testimonials = [
     type: 'Elite Member',
     text: '"I rely on IronFit to keep me in peak condition for my roles. The privacy, the exclusivity, and the results are consistently exceptional."',
     image: 'https://images.pexels.com/photos/1153369/pexels-photo-1153369.jpeg?auto=compress&cs=tinysrgb&w=150',
+    imageWebP: 'https://images.pexels.com/photos/1153369/pexels-photo-1153369.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=150',
     rating: 5,
   }
 ];
@@ -43,7 +47,6 @@ const testimonials = [
 const Testimonials = () => {
   return (
     <section id="testimonials" className="py-32 bg-iron-dark relative overflow-hidden landing-page">
-      {/* Background Decor */}
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-iron-gold via-iron-black to-iron-black pointer-events-none"></div>
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10">
@@ -118,7 +121,10 @@ const Testimonials = () => {
                   </p>
 
                   <div className="flex items-center gap-4 mt-auto">
-                    <img src={t.image} alt={t.name} className="w-12 h-12 rounded-full object-cover border border-white/10" />
+                    <picture>
+                      <source srcSet={t.imageWebP} type="image/webp" />
+                      <img src={t.image} alt={t.name} className="w-12 h-12 rounded-full object-cover border border-white/10" loading="lazy" decoding="async" />
+                    </picture>
                     <div>
                       <h4 className="font-bold text-white flex items-center gap-2">
                         {t.name} <CheckCircle size={14} className="text-blue-500" />

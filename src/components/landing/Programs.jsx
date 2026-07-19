@@ -3,6 +3,7 @@ import { motion, useSpring } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const defaultImage = "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800";
+const defaultImageWebP = "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800";
 
 const ProgramCard = ({ program, index }) => {
   const cardRef = useRef(null);
@@ -18,7 +19,7 @@ const ProgramCard = ({ program, index }) => {
     const mouseY = e.clientY - rect.top;
     const xPct = mouseX / width - 0.5;
     const yPct = mouseY / height - 0.5;
-    x.set(xPct * 20); // max rotation degrees
+    x.set(xPct * 20);
     y.set(yPct * -20);
   };
 
@@ -27,11 +28,15 @@ const ProgramCard = ({ program, index }) => {
     y.set(0);
   };
 
-  // Provide some default spans for layout variation based on index if not set
   let spanClass = "col-span-1 row-span-1";
   if (index === 0) spanClass = "col-span-1 md:col-span-2 row-span-2";
   if (index === 3) spanClass = "col-span-1 row-span-2";
   if (index === 4) spanClass = "col-span-1 md:col-span-2 row-span-1";
+
+  const imgSrc = program.image || defaultImage;
+  const imgSrcWebP = program.image 
+    ? program.image.replace(/\.(jpg|jpeg|png)(\?.*)?$/, '$&') + (program.image.includes('?') ? '&' : '?') + 'fm=webp'
+    : defaultImageWebP;
 
   return (
     <motion.div
@@ -45,23 +50,23 @@ const ProgramCard = ({ program, index }) => {
       style={{ rotateY: x, rotateX: y, transformPerspective: 1000, willChange: 'transform' }}
       className={`relative group rounded-3xl overflow-hidden bg-iron-dark ${spanClass}`}
     >
-      {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
-        <img 
-          src={program.image || defaultImage} 
-          alt={program.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-40"
-          loading="lazy"
-          decoding="async"
-          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-        />
+        <picture>
+          <source srcSet={imgSrcWebP} type="image/webp" />
+          <img 
+            src={imgSrc}
+            alt={program.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-40"
+            loading="lazy"
+            decoding="async"
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-t from-iron-black via-iron-black/40 to-transparent"></div>
       </div>
 
-      {/* Glow Border */}
       <div className="absolute inset-0 border-2 border-transparent group-hover:border-iron-gold/30 rounded-3xl transition-colors duration-500 pointer-events-none"></div>
 
-      {/* Content */}
       <div className="relative h-full flex flex-col justify-between p-8 z-10">
         <div className="flex justify-between items-start">
           {program.category && (
@@ -96,7 +101,6 @@ const Programs = () => {
       try {
         const { getPrograms } = await import('../../api/programs');
         const data = await getPrograms({ status: 'active' });
-        // Sort by sortOrder and take top 6 to fit the layout
         setPrograms(data.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)).slice(0, 6));
       } catch (err) {
         console.error(err);

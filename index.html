@@ -8,10 +8,35 @@
     <meta name="keywords" content="luxury fitness, premium gym, personal training, strength training, elite coaching" />
     <meta name="theme-color" content="#050505" />
     <title>IronFit Elite | Premium Luxury Fitness</title>
+
+    <!-- Preconnect to critical origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet" />
-    <link rel="preload" as="video" href="https://videos.pexels.com/video-files/26012709/11994470_2560_1440_30fps.mp4" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://images.pexels.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://images.pexels.com" />
+
+    <!-- Preload critical assets (weights must match actual font load) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" />
+    
+    <!-- Hero poster image (critical above-the-fold) -->
+    <link rel="preload" as="image" href="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80" />
+
+    <!-- Google Fonts - loaded with display=swap for text visibility during load -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- Inline critical CSS to prevent FOUC and reduce render-blocking -->
+    <style>
+      html, body { margin: 0; padding: 0; background: #050505; color: #fff; }
+      #root { min-height: 100vh; }
+      .font-cinematic { font-family: 'Oswald', sans-serif; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

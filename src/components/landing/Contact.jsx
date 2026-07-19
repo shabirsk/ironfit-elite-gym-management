@@ -11,7 +11,6 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Use real API
       const { submitContactForm } = await import('../../api/contact');
       await submitContactForm(formData);
       setIsSuccess(true);
@@ -19,7 +18,6 @@ const Contact = () => {
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (err) {
       console.error(err);
-      // Optional: show error message
     } finally {
       setIsSubmitting(false);
     }
@@ -56,7 +54,10 @@ const Contact = () => {
           {/* Left: Info & Map */}
           <div className="w-full lg:w-5/12 bg-iron-black/50 p-8 lg:p-12 relative overflow-hidden">
             <div className="absolute inset-0 z-0 opacity-20">
-              <img src="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Gym" className="w-full h-full object-cover mix-blend-luminosity" />
+              <picture>
+                <source srcSet="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800" type="image/webp" />
+                <img src="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800" alt="" className="w-full h-full object-cover mix-blend-luminosity" loading="lazy" decoding="async" />
+              </picture>
             </div>
             
             <div className="relative z-10 h-full flex flex-col justify-between">
@@ -97,9 +98,12 @@ const Contact = () => {
                 </div>
               </div>
 
-              {/* Minimal Map Placeholder (Visual) */}
+              {/* Minimal Map Placeholder */}
               <a href="https://maps.google.com/?q=Bangalore,+India" target="_blank" rel="noopener noreferrer" className="w-full h-32 rounded-xl bg-white/5 border border-white/10 overflow-hidden relative group block cursor-pointer">
-                <img src="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Map Location" className="w-full h-full object-cover opacity-50 filter grayscale blur-[1px] group-hover:blur-0 group-hover:opacity-70 transition-all duration-500" />
+                <picture>
+                  <source srcSet="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800" type="image/webp" />
+                  <img src="https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Map Location" className="w-full h-full object-cover opacity-50 filter grayscale blur-[1px] group-hover:blur-0 group-hover:opacity-70 transition-all duration-500" loading="lazy" decoding="async" />
+                </picture>
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/10 transition-colors duration-500">
                   <span className="text-iron-gold font-bold text-xs uppercase tracking-widest bg-black/80 px-4 py-2 rounded backdrop-blur-sm border border-iron-gold/50 group-hover:border-iron-gold group-hover:scale-105 transition-all shadow-lg">View on Maps</span>
                 </div>

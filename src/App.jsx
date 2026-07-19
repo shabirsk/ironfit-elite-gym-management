@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MemberAuthProvider, useMemberAuth } from './contexts/MemberAuthContext';
-import { gsap } from 'gsap';
+import { useMotionValue, useSpring, motion as framerMotion } from 'framer-motion';
 
-// Import new premium landing components
+// Lazy-load all landing page below-the-fold components (Hero is critical, keep inline)
 import Navbar from './components/landing/Navbar';
 import Hero from './components/landing/Hero';
+import './styles/landing.css';
 
-import { lazy, Suspense } from 'react';
-
-// Lazy load below-the-fold components
+// Lazy-load below-the-fold landing components
 const Programs = lazy(() => import('./components/landing/Programs'));
 const Trainers = lazy(() => import('./components/landing/Trainers'));
 const Transformation = lazy(() => import('./components/landing/Transformation'));
@@ -19,47 +18,56 @@ const Gallery = lazy(() => import('./components/landing/Gallery'));
 const Testimonials = lazy(() => import('./components/landing/Testimonials'));
 const Contact = lazy(() => import('./components/landing/Contact'));
 const Footer = lazy(() => import('./components/landing/Footer'));
-import './styles/landing.css';
 
-import AdminLayout from './components/admin/AdminLayout';
-import AdminLogin from './pages/admin/Login';
-import Dashboard from './pages/admin/Dashboard';
-import Leads from './pages/admin/Leads';
-import Plans from './pages/admin/Plans';
-import Members from './pages/admin/Members';
-import AdminTrainers from './pages/admin/Trainers';
-import Workouts from './pages/admin/Workouts';
-import Attendance from './pages/admin/Attendance';
-import Subscriptions from './pages/admin/Subscriptions';
-import Payments from './pages/admin/Payments';
-import Revenue from './pages/admin/Revenue';
-import Automations from './pages/admin/Automations';
-import AdminPrograms from './pages/admin/Programs';
-import AdminDietPlans from './pages/admin/DietPlans';
-import AdminNotifications from './pages/admin/Notifications';
-import AdminUploads from './pages/admin/Uploads';
-import AdminQRAttendance from './pages/admin/QRAttendance';
-import AdminProfile from './pages/admin/AdminProfile';
-import RazorpaySettings from './pages/admin/settings/RazorpaySettings';
-import SMTPSettings from './pages/admin/settings/SMTPSettings';
-import WhatsAppSettings from './pages/admin/settings/WhatsAppSettings';
+// Lazy-load Admin page components
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
+const AdminLogin = lazy(() => import('./pages/admin/Login'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const Leads = lazy(() => import('./pages/admin/Leads'));
+const Plans = lazy(() => import('./pages/admin/Plans'));
+const Members = lazy(() => import('./pages/admin/Members'));
+const AdminTrainers = lazy(() => import('./pages/admin/Trainers'));
+const Workouts = lazy(() => import('./pages/admin/Workouts'));
+const Attendance = lazy(() => import('./pages/admin/Attendance'));
+const Subscriptions = lazy(() => import('./pages/admin/Subscriptions'));
+const Payments = lazy(() => import('./pages/admin/Payments'));
+const Revenue = lazy(() => import('./pages/admin/Revenue'));
+const Automations = lazy(() => import('./pages/admin/Automations'));
+const AdminPrograms = lazy(() => import('./pages/admin/Programs'));
+const AdminDietPlans = lazy(() => import('./pages/admin/DietPlans'));
+const AdminNotifications = lazy(() => import('./pages/admin/Notifications'));
+const AdminUploads = lazy(() => import('./pages/admin/Uploads'));
+const AdminQRAttendance = lazy(() => import('./pages/admin/QRAttendance'));
+const AdminProfile = lazy(() => import('./pages/admin/AdminProfile'));
+const RazorpaySettings = lazy(() => import('./pages/admin/settings/RazorpaySettings'));
+const SMTPSettings = lazy(() => import('./pages/admin/settings/SMTPSettings'));
+const WhatsAppSettings = lazy(() => import('./pages/admin/settings/WhatsAppSettings'));
 
-import MemberLogin from './pages/member/MemberLogin';
-import MemberRegister from './pages/member/MemberRegister';
-import ForgotPassword from './pages/member/ForgotPassword';
-import ResetPassword from './pages/member/ResetPassword';
-import MemberLayout from './components/MemberLayout';
-import MemberDashboard from './pages/member/MemberDashboard';
-import MemberAttendance from './pages/member/MemberAttendance';
-import MemberWorkouts from './pages/member/MemberWorkouts';
-import MemberDietPlans from './pages/member/MemberDietPlans';
-import MemberPlans from './pages/member/MemberPlans';
-import MemberPayments from './pages/member/MemberPayments';
-import MemberNotifications from './pages/member/MemberNotifications';
-import MemberProfile from './pages/member/MemberProfile';
+// Lazy-load Member page components
+const MemberLogin = lazy(() => import('./pages/member/MemberLogin'));
+const MemberRegister = lazy(() => import('./pages/member/MemberRegister'));
+const ForgotPassword = lazy(() => import('./pages/member/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/member/ResetPassword'));
+const MemberLayout = lazy(() => import('./components/MemberLayout'));
+const MemberDashboard = lazy(() => import('./pages/member/MemberDashboard'));
+const MemberAttendance = lazy(() => import('./pages/member/MemberAttendance'));
+const MemberWorkouts = lazy(() => import('./pages/member/MemberWorkouts'));
+const MemberDietPlans = lazy(() => import('./pages/member/MemberDietPlans'));
+const MemberPlans = lazy(() => import('./pages/member/MemberPlans'));
+const MemberPayments = lazy(() => import('./pages/member/MemberPayments'));
+const MemberNotifications = lazy(() => import('./pages/member/MemberNotifications'));
+const MemberProfile = lazy(() => import('./pages/member/MemberProfile'));
 
+// Critical components kept inline
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
+
+const PAGE_LOAD_FALLBACK = <div style={{ minHeight: '100vh', background: '#050505' }} />;
+const ADMIN_LOAD_FALLBACK = (
+  <div style={{ minHeight: '100vh', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="saas-skeleton" style={{ width: 48, height: 48, borderRadius: '50%' }} />
+  </div>
+);
 
 const PublicLayout = () => {
   const [loading, setLoading] = useState(true);
@@ -88,7 +96,7 @@ const PublicLayout = () => {
 
       <main style={{ position: 'relative', zIndex: 1 }}>
         <Hero onLoadingComplete={() => setLoading(false)} />
-        <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--iron-black)' }} />}>
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--iron-black, #050505)' }} />}>
           <Programs />
           <Trainers />
           <Transformation />
@@ -106,14 +114,11 @@ const PublicLayout = () => {
   );
 };
 
-import { useMotionValue, useSpring, motion as framerMotion } from 'framer-motion';
-
 // Mouse-follow glow component
 const MouseGlow = () => {
   const mouseX = useMotionValue(-500);
   const mouseY = useMotionValue(-500);
   
-  // Smooth out the movement and ensure it happens off main thread where possible
   const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
   const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
 
@@ -122,7 +127,6 @@ const MouseGlow = () => {
       mouseX.set(e.clientX - 200);
       mouseY.set(e.clientY - 200);
     };
-    // passive: true prevents blocking scroll performance
     window.addEventListener('mousemove', handleMouse, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouse);
   }, [mouseX, mouseY]);
@@ -155,64 +159,78 @@ const App = () => {
         <ToastProvider>
         <Routes>
           <Route path="/" element={<PublicLayout />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/login" element={
+            <Suspense fallback={PAGE_LOAD_FALLBACK}><AdminLogin /></Suspense>
+          } />
           <Route
             path="/admin"
             element={
               <ProtectedRoute>
                 <ErrorBoundary>
-                  <AdminLayout />
+                  <Suspense fallback={ADMIN_LOAD_FALLBACK}>
+                    <AdminLayout />
+                  </Suspense>
                 </ErrorBoundary>
               </ProtectedRoute>
             }
           >
             <Route index element={<Navigate to="/admin/dashboard" />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="plans" element={<Plans />} />
-            <Route path="members" element={<Members />} />
-            <Route path="trainers" element={<AdminTrainers />} />
-            <Route path="workouts" element={<Workouts />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="qr-attendance" element={<AdminQRAttendance />} />
-            <Route path="subscriptions" element={<Subscriptions />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="revenue" element={<Revenue />} />
-            <Route path="leads" element={<Leads />} />
-            <Route path="programs" element={<AdminPrograms />} />
-            <Route path="diet-plans" element={<AdminDietPlans />} />
-            <Route path="notifications" element={<AdminNotifications />} />
-            <Route path="uploads" element={<AdminUploads />} />
-            <Route path="automations" element={<Automations />} />
-            <Route path="profile" element={<AdminProfile />} />
+            <Route path="dashboard" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Dashboard /></Suspense>} />
+            <Route path="plans" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Plans /></Suspense>} />
+            <Route path="members" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Members /></Suspense>} />
+            <Route path="trainers" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminTrainers /></Suspense>} />
+            <Route path="workouts" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Workouts /></Suspense>} />
+            <Route path="attendance" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Attendance /></Suspense>} />
+            <Route path="qr-attendance" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminQRAttendance /></Suspense>} />
+            <Route path="subscriptions" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Subscriptions /></Suspense>} />
+            <Route path="payments" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Payments /></Suspense>} />
+            <Route path="revenue" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Revenue /></Suspense>} />
+            <Route path="leads" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Leads /></Suspense>} />
+            <Route path="programs" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminPrograms /></Suspense>} />
+            <Route path="diet-plans" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminDietPlans /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminNotifications /></Suspense>} />
+            <Route path="uploads" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminUploads /></Suspense>} />
+            <Route path="automations" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Automations /></Suspense>} />
+            <Route path="profile" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminProfile /></Suspense>} />
             <Route path="settings" element={<Navigate to="/admin/settings/razorpay" />} />
-            <Route path="settings/razorpay" element={<RazorpaySettings />} />
-            <Route path="settings/smtp" element={<SMTPSettings />} />
-            <Route path="settings/whatsapp" element={<WhatsAppSettings />} />
+            <Route path="settings/razorpay" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><RazorpaySettings /></Suspense>} />
+            <Route path="settings/smtp" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><SMTPSettings /></Suspense>} />
+            <Route path="settings/whatsapp" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><WhatsAppSettings /></Suspense>} />
           </Route>
 
           {/* Member Routes */}
-          <Route path="/member/login" element={<MemberLogin />} />
-          <Route path="/member/register" element={<MemberRegister />} />
-          <Route path="/member/forgot-password" element={<ForgotPassword />} />
-          <Route path="/member/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/member/login" element={
+            <Suspense fallback={PAGE_LOAD_FALLBACK}><MemberLogin /></Suspense>
+          } />
+          <Route path="/member/register" element={
+            <Suspense fallback={PAGE_LOAD_FALLBACK}><MemberRegister /></Suspense>
+          } />
+          <Route path="/member/forgot-password" element={
+            <Suspense fallback={PAGE_LOAD_FALLBACK}><ForgotPassword /></Suspense>
+          } />
+          <Route path="/member/reset-password/:token" element={
+            <Suspense fallback={PAGE_LOAD_FALLBACK}><ResetPassword /></Suspense>
+          } />
 
           <Route
             path="/member"
             element={
               <MemberProtectedRoute>
-                <MemberLayout />
+                <Suspense fallback={PAGE_LOAD_FALLBACK}>
+                  <MemberLayout />
+                </Suspense>
               </MemberProtectedRoute>
             }
           >
             <Route index element={<Navigate to="/member/dashboard" />} />
-            <Route path="dashboard" element={<MemberDashboard />} />
-            <Route path="attendance" element={<MemberAttendance />} />
-            <Route path="workouts" element={<MemberWorkouts />} />
-            <Route path="diet-plans" element={<MemberDietPlans />} />
-            <Route path="plans" element={<MemberPlans />} />
-            <Route path="payments" element={<MemberPayments />} />
-            <Route path="notifications" element={<MemberNotifications />} />
-            <Route path="profile" element={<MemberProfile />} />
+            <Route path="dashboard" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberDashboard /></Suspense>} />
+            <Route path="attendance" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberAttendance /></Suspense>} />
+            <Route path="workouts" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberWorkouts /></Suspense>} />
+            <Route path="diet-plans" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberDietPlans /></Suspense>} />
+            <Route path="plans" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberPlans /></Suspense>} />
+            <Route path="payments" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberPayments /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberNotifications /></Suspense>} />
+            <Route path="profile" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberProfile /></Suspense>} />
           </Route>
         </Routes>
         </ToastProvider>

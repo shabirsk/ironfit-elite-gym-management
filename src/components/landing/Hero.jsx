@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import gsap from 'gsap';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -63,36 +62,108 @@ const Hero = ({ onLoadingComplete }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const videoRef = useRef(null);
-  const { scrollY } = useScroll();
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const prefersReducedMotion = useCallback(() => 
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, 
+  []);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current) {
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
-      }
-    }
+    setIsMobile(window.innerWidth < 768);
+    
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
+  // Signal loading complete immediately on mount (don't wait for video)
   useEffect(() => {
     if (onLoadingComplete) {
-      setTimeout(() => onLoadingComplete(), 500);
+      onLoadingComplete();
+    }
+  }, [onLoadingComplete]);
+
+  // Lazy-load video after first paint
+  useEffect(() => {
+    if (isMobile) return; // Don't load video background on mobile for perf
+    
+    const videoTimer = setTimeout(() => {
+      if (videoRef.current) {
+        const source = document.createElement('source');
+        source.src = 'https://videos.pexels.com/video-files/3255275/3255275-uhd_2560_1440_25fps.mp4';
+        source.type = 'video/mp4';
+        videoRef.current.appendChild(source);
+        videoRef.current.load();
+        
+        videoRef.current.oncanplay = () => {
+          setVideoLoaded(true);
+          videoRef.current.play().catch(() => {});
+        };
+      }
+    }, 1000); // Longer delay to prioritize initial paint
+
+    return () => clearTimeout(videoTimer);
+  }, [isMobile]);
+
+  // Load GSAP dynamically with fallback - race GSAP load vs timeout
+  useEffect(() => {
+    // First, show the text immediately as a fallback
+    const chars = textRef.current?.querySelectorAll('.char');
+    if (chars) {
+      // Immediately show text on mobile (no animation)
+      if (prefersReducedMotion() || isMobile) {
+        chars.forEach(char => {
+          char.style.opacity = '1';
+          char.style.transform = 'translateY(0)';
+        });
+        return;
+      }
     }
 
-    const chars = textRef.current.querySelectorAll('.char');
-    gsap.fromTo(
-      chars,
-      { y: 100, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1.2,
-        stagger: 0.05,
-        ease: 'power4.out',
-        delay: 0.5,
+    let cancelled = false;
+    
+    // Set a fallback timeout to show text even if GSAP fails
+    const fallbackTimer = setTimeout(() => {
+      if (!cancelled && chars) {
+        chars.forEach(char => {
+          char.style.opacity = '1';
+          char.style.transform = 'translateY(0)';
+        });
       }
-    );
-  }, [onLoadingComplete]);
+    }, 3000);
+
+    // Try to load GSAP
+    const loadGsap = async () => {
+      try {
+        const gsapModule = await import('gsap');
+        const gsap = gsapModule.default || gsapModule;
+        if (!cancelled && chars && chars.length > 0) {
+          clearTimeout(fallbackTimer);
+          gsap.fromTo(
+            chars,
+            { y: 100, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 1.2,
+              stagger: 0.05,
+              ease: 'power4.out',
+              delay: 0.3,
+            }
+          );
+        }
+      } catch {
+        // Fallback is already handled by the timeout
+      }
+    };
+
+    loadGsap();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(fallbackTimer);
+    };
+  }, [prefersReducedMotion, isMobile]);
 
   const splitText = (text) => {
     return text.split('').map((char, index) => (
@@ -102,35 +173,56 @@ const Hero = ({ onLoadingComplete }) => {
     ));
   };
 
+  // Disable parallax on mobile for performance
+  const { scrollY } = useScroll();
+  const heroY = !isMobile ? useTransform(scrollY, [0, 500], [0, 150]) : { get: () => 0 };
+  const heroOpacity = !isMobile ? useTransform(scrollY, [0, 300], [1, 0.8]) : { get: () => 1 };
+
   return (
     <section ref={containerRef} className="relative w-full min-h-screen overflow-hidden bg-iron-black landing-page">
-      {/* Video Background */}
+      {/* Background - poster image shown immediately */}
       <div className="absolute inset-0 w-full h-full will-change-transform">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          className="w-full h-full object-cover object-center"
-          poster="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
-          style={{ willChange: 'transform' }}
-        >
-          <source src="https://videos.pexels.com/video-files/3255275/3255275-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-        </video>
+        <picture>
+          <source 
+            srcSet="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=1920&q=80" 
+            type="image/webp" 
+          />
+          <img 
+            src="https://images.pexels.com/photos/841130/pexels-photo-841130.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{ willChange: 'transform' }}
+            aria-hidden="true"
+            decoding="async"
+          />
+        </picture>
+        
+        {/* Video loads lazily after first paint (not on mobile) */}
+        {!isMobile && (
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="none"
+            className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+            poster=""
+            style={{ willChange: 'transform' }}
+          />
+        )}
         
         {/* Dark cinematic overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-iron-black/70 via-iron-black/50 to-iron-black/95 mix-blend-multiply"></div>
         
-        {/* Subtle gradient glows */}
+        {/* Gradient glows */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-iron-gold/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-blue-900/10 rounded-full blur-[150px] pointer-events-none"></div>
       </div>
 
-      {/* Floating Particles (CSS animated via Tailwind config) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
+      {/* Floating Particles - reduced on mobile */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        {(isMobile ? [...Array(3)] : [...Array(6)]).map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white/20 rounded-full animate-float"
@@ -138,7 +230,8 @@ const Hero = ({ onLoadingComplete }) => {
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 5}s`
+              animationDuration: `${5 + Math.random() * 5}s`,
+              willChange: 'transform'
             }}
           ></div>
         ))}
@@ -150,7 +243,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 0.1 }}
             className="flex items-center gap-4 mb-6"
           >
             <div className="w-12 h-[2px] bg-iron-gold"></div>
@@ -159,7 +252,6 @@ const Hero = ({ onLoadingComplete }) => {
             </span>
           </motion.div>
 
-          {/* GSAP Split Text */}
           <h1 
             ref={textRef} 
             className="font-cinematic text-6xl md:text-8xl lg:text-[100px] xl:text-[120px] leading-[0.9] font-bold text-iron-light uppercase mb-8 tracking-tight"
@@ -174,7 +266,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.5 }}
+            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 1.2 }}
             className="text-xl md:text-2xl text-iron-light/70 max-w-2xl mb-12 font-light leading-relaxed"
           >
             Transform your body with world-class coaching, elite trainers, and cutting-edge fitness programs.
@@ -184,7 +276,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.7 }}
+            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 1.4 }}
             className="flex flex-col sm:flex-row gap-6"
           >
             <Link
@@ -210,7 +302,7 @@ const Hero = ({ onLoadingComplete }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 2 }}
+          transition={{ duration: prefersReducedMotion() ? 0 : 0.8, delay: prefersReducedMotion() ? 0 : 1.8 }}
           className="absolute bottom-12 left-6 right-6 md:left-auto md:right-12 flex items-center gap-8 md:gap-16 border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-12"
         >
           <div>
@@ -233,16 +325,16 @@ const Hero = ({ onLoadingComplete }) => {
           </div>
         </motion.div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator - hidden on mobile */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 2.5 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 hidden md:flex"
+          animate={{ opacity: prefersReducedMotion() ? 1 : 1 }}
+          transition={{ duration: prefersReducedMotion() ? 0 : 1, delay: prefersReducedMotion() ? 0 : 2.5 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex-col items-center gap-2 hidden md:flex"
         >
           <span className="text-[10px] uppercase tracking-[0.2em] text-iron-light/40" style={{ writingMode: 'vertical-rl' }}>Scroll</span>
           <motion.div
-            animate={{ y: [0, 10, 0] }}
+            animate={prefersReducedMotion() ? {} : { y: [0, 10, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <ChevronDown size={16} className="text-iron-gold" />

@@ -5,8 +5,6 @@
   Inspired by Linear, Stripe, and Vercel.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 :root {
   /* Ultra-Premium Dark Theme - Linear/Vercel Style */
   --bg-main: #000000;
@@ -156,7 +154,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
-  min-width: 0; /* Prevents grid blowout */
+  min-width: 0;
 }
 .premium-input-label {
   font-size: 13px;
@@ -164,7 +162,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-secondary);
 }
 .premium-input {
-  width: 100%; /* Force 100% width to stay in box */
+  width: 100%;
   background: var(--bg-main);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);

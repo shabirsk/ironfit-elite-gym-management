@@ -3,12 +3,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Expand } from 'lucide-react';
 
 const images = [
-  'https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/416809/pexels-photo-416809.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/841131/pexels-photo-841131.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&w=800',
+  {
+    src: 'https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
+  {
+    src: 'https://images.pexels.com/photos/416809/pexels-photo-416809.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/416809/pexels-photo-416809.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
+  {
+    src: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
+  {
+    src: 'https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/2261477/pexels-photo-2261477.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
+  {
+    src: 'https://images.pexels.com/photos/841131/pexels-photo-841131.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/841131/pexels-photo-841131.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
+  {
+    src: 'https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&w=800',
+    webp: 'https://images.pexels.com/photos/3289711/pexels-photo-3289711.jpeg?auto=compress&cs=tinysrgb&fm=webp&w=800',
+  },
 ];
 
 const Gallery = () => {
@@ -50,9 +68,8 @@ const Gallery = () => {
           </motion.p>
         </div>
 
-        {/* Pinterest style masonry grid using CSS columns */}
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-          {images.map((src, index) => (
+          {images.map((img, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -60,16 +77,19 @@ const Gallery = () => {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="relative group rounded-2xl overflow-hidden cursor-pointer break-inside-avoid shadow-lg shadow-black/50"
-              onClick={() => setSelectedImg(src)}
+              onClick={() => setSelectedImg(img.src)}
             >
-              <img 
-                src={src} 
-                alt="Gym Facility" 
-                loading="lazy"
-                decoding="async" 
-                className="w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-              />
+              <picture>
+                <source srcSet={img.webp} type="image/webp" />
+                <img 
+                  src={img.src}
+                  alt="Gym Facility"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+                />
+              </picture>
               <div className="absolute inset-0 bg-iron-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
                 <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white transform scale-50 group-hover:scale-100 transition-transform duration-300 delay-100">
                   <Expand size={20} />
@@ -80,7 +100,6 @@ const Gallery = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImg && (
           <motion.div
