@@ -4,10 +4,13 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MemberAuthProvider, useMemberAuth } from './contexts/MemberAuthContext';
 import { useMotionValue, useSpring, motion as framerMotion } from 'framer-motion';
 
-// Lazy-load all landing page below-the-fold components (Hero is critical, keep inline)
+// Hero and Navbar are inline — they render immediately with static data, no API calls
 import Navbar from './components/landing/Navbar';
 import Hero from './components/landing/Hero';
 import './styles/landing.css';
+
+// Viewport-based lazy loader — loads children only when they scroll into view
+import LazySection from './components/LazySection';
 
 // Lazy-load below-the-fold landing components
 const Programs = lazy(() => import('./components/landing/Programs'));
@@ -58,100 +61,92 @@ const MemberPayments = lazy(() => import('./pages/member/MemberPayments'));
 const MemberNotifications = lazy(() => import('./pages/member/MemberNotifications'));
 const MemberProfile = lazy(() => import('./pages/member/MemberProfile'));
 
-// Critical components kept inline
 import ErrorBoundary from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 
-const PAGE_LOAD_FALLBACK = <div style={{ minHeight: '100vh', background: '#050505' }} />;
-const ADMIN_LOAD_FALLBACK = (
-  <div style={{ minHeight: '100vh', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <div className="saas-skeleton" style={{ width: 48, height: 48, borderRadius: '50%' }} />
+// ─── Skeleton placeholders for below-fold sections ───
+
+const SectionSkeleton = ({ height = '100vh' }) => (
+  <div
+    className="landing-page"
+    style={{
+      height,
+      background: '#050505',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
+    <div
+      className="saas-skeleton"
+      style={{ width: 48, height: 48, borderRadius: '50%', opacity: 0.3 }}
+    />
   </div>
 );
 
-const PublicLayout = () => {
-  const [loading, setLoading] = useState(true);
+// ─── PublicLayout — renders Hero immediately, lazy-loads everything else ───
 
-  return (
-    <>
-      {/* Loading Screen */}
-      {loading && (
-        <div className="fixed inset-0 z-[999] bg-iron-black flex flex-col items-center justify-center">
-          <div className="flex items-center">
-            <span className="font-cinematic text-5xl font-bold tracking-wider text-iron-light">IRON</span>
-            <span className="font-cinematic text-5xl font-light text-iron-gold">FIT</span>
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.5em] text-iron-light/60 mt-2 mb-8">Elite</div>
-          <div className="w-48 h-[2px] bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-iron-gold rounded-full w-1/2 animate-pulse-slow origin-left" style={{ animation: 'loading-bar 1.5s ease-in-out infinite' }} />
-          </div>
-        </div>
-      )}
+const PublicLayout = () => (
+  <>
+    <MouseGlow />
+    <Navbar />
+    <main style={{ position: 'relative', zIndex: 1 }}>
+      {/* Hero renders instantly — no loading screen, no API calls */}
+      <Hero />
 
-      {/* Mouse-follow glow effect — skipped on mobile to avoid framer-motion overhead */}
-      <MouseGlow />
-
-      {/* Navigation */}
-      <Navbar />
-
-      <main style={{ position: 'relative', zIndex: 1 }}>
-        <Hero onLoadingComplete={() => setLoading(false)} />
-        <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--iron-black, #050505)' }} />}>
+      {/* Below-fold sections are code-split AND viewport-lazy:
+           1. React.lazy() splits the JS into separate chunks
+           2. LazySection waits until the user scrolls near them before triggering the chunk download
+           3. Suspense shows skeleton while the chunk downloads
+      */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
           <Programs />
-          <Trainers />
-          <Transformation />
-          <MembershipPlans />
-          <Gallery />
-          <Testimonials />
-          <Contact />
-        </Suspense>
-      </main>
-
-      <Suspense fallback={null}>
-        <Footer />
+        </LazySection>
       </Suspense>
-    </>
-  );
-};
 
-// Mouse-follow glow component — renders nothing on mobile/touch to save CPU
-const MouseGlow = () => {
-  const [isTouch, setIsTouch] = useState(true);
-  const mouseX = useMotionValue(-500);
-  const mouseY = useMotionValue(-500);
-  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
-  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <Trainers />
+        </LazySection>
+      </Suspense>
 
-  useEffect(() => {
-    // Detect that this is NOT a touch device by waiting for a real mouse move
-    const handleFirstMouse = () => {
-      setIsTouch(false);
-      window.removeEventListener('mousemove', handleFirstMouse);
-    };
-    window.addEventListener('mousemove', handleFirstMouse, { once: true, passive: true });
-    return () => window.removeEventListener('mousemove', handleFirstMouse);
-  }, []);
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <Transformation />
+        </LazySection>
+      </Suspense>
 
-  useEffect(() => {
-    if (isTouch) return;
-    const handleMouse = (e) => {
-      mouseX.set(e.clientX - 200);
-      mouseY.set(e.clientY - 200);
-    };
-    window.addEventListener('mousemove', handleMouse, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouse);
-  }, [isTouch, mouseX, mouseY]);
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <MembershipPlans />
+        </LazySection>
+      </Suspense>
 
-  // Render nothing on touch devices — avoids spring animation overhead
-  if (isTouch) return null;
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <Gallery />
+        </LazySection>
+      </Suspense>
 
-  return (
-    <framerMotion.div
-      className="fixed pointer-events-none z-0 w-[400px] h-[400px] rounded-full bg-iron-gold/5 blur-[100px] mix-blend-screen"
-      style={{ x: smoothX, y: smoothY, willChange: 'transform' }}
-    />
-  );
-};
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <Testimonials />
+        </LazySection>
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <LazySection placeholder={<SectionSkeleton />}>
+          <Contact />
+        </LazySection>
+      </Suspense>
+    </main>
+
+    <Suspense fallback={null}>
+      <Footer />
+    </Suspense>
+  </>
+);
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -174,14 +169,14 @@ const App = () => {
         <Routes>
           <Route path="/" element={<PublicLayout />} />
           <Route path="/admin/login" element={
-            <Suspense fallback={PAGE_LOAD_FALLBACK}><AdminLogin /></Suspense>
+            <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><AdminLogin /></Suspense>
           } />
           <Route
             path="/admin"
             element={
               <ProtectedRoute>
                 <ErrorBoundary>
-                  <Suspense fallback={ADMIN_LOAD_FALLBACK}>
+                  <Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}>
                     <AdminLayout />
                   </Suspense>
                 </ErrorBoundary>
@@ -189,62 +184,61 @@ const App = () => {
             }
           >
             <Route index element={<Navigate to="/admin/dashboard" />} />
-            <Route path="dashboard" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Dashboard /></Suspense>} />
-            <Route path="plans" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Plans /></Suspense>} />
-            <Route path="members" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Members /></Suspense>} />
-            <Route path="trainers" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminTrainers /></Suspense>} />
-            <Route path="workouts" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Workouts /></Suspense>} />
-            <Route path="attendance" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Attendance /></Suspense>} />
-            <Route path="qr-attendance" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminQRAttendance /></Suspense>} />
-            <Route path="subscriptions" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Subscriptions /></Suspense>} />
-            <Route path="payments" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Payments /></Suspense>} />
-            <Route path="revenue" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Revenue /></Suspense>} />
-            <Route path="leads" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Leads /></Suspense>} />
-            <Route path="programs" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminPrograms /></Suspense>} />
-            <Route path="diet-plans" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminDietPlans /></Suspense>} />
-            <Route path="notifications" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminNotifications /></Suspense>} />
-            <Route path="uploads" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminUploads /></Suspense>} />
-            <Route path="automations" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><Automations /></Suspense>} />
-            <Route path="profile" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><AdminProfile /></Suspense>} />
+            <Route path="dashboard" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Dashboard /></Suspense>} />
+            <Route path="plans" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Plans /></Suspense>} />
+            <Route path="members" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Members /></Suspense>} />
+            <Route path="trainers" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminTrainers /></Suspense>} />
+            <Route path="workouts" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Workouts /></Suspense>} />
+            <Route path="attendance" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Attendance /></Suspense>} />
+            <Route path="qr-attendance" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminQRAttendance /></Suspense>} />
+            <Route path="subscriptions" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Subscriptions /></Suspense>} />
+            <Route path="payments" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Payments /></Suspense>} />
+            <Route path="revenue" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Revenue /></Suspense>} />
+            <Route path="leads" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Leads /></Suspense>} />
+            <Route path="programs" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminPrograms /></Suspense>} />
+            <Route path="diet-plans" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminDietPlans /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminNotifications /></Suspense>} />
+            <Route path="uploads" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminUploads /></Suspense>} />
+            <Route path="automations" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><Automations /></Suspense>} />
+            <Route path="profile" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><AdminProfile /></Suspense>} />
             <Route path="settings" element={<Navigate to="/admin/settings/razorpay" />} />
-            <Route path="settings/razorpay" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><RazorpaySettings /></Suspense>} />
-            <Route path="settings/smtp" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><SMTPSettings /></Suspense>} />
-            <Route path="settings/whatsapp" element={<Suspense fallback={ADMIN_LOAD_FALLBACK}><WhatsAppSettings /></Suspense>} />
+            <Route path="settings/razorpay" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><RazorpaySettings /></Suspense>} />
+            <Route path="settings/smtp" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><SMTPSettings /></Suspense>} />
+            <Route path="settings/whatsapp" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#000000' }} />}><WhatsAppSettings /></Suspense>} />
           </Route>
 
-          {/* Member Routes */}
           <Route path="/member/login" element={
-            <Suspense fallback={PAGE_LOAD_FALLBACK}><MemberLogin /></Suspense>
+            <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberLogin /></Suspense>
           } />
           <Route path="/member/register" element={
-            <Suspense fallback={PAGE_LOAD_FALLBACK}><MemberRegister /></Suspense>
+            <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberRegister /></Suspense>
           } />
           <Route path="/member/forgot-password" element={
-            <Suspense fallback={PAGE_LOAD_FALLBACK}><ForgotPassword /></Suspense>
+            <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><ForgotPassword /></Suspense>
           } />
           <Route path="/member/reset-password/:token" element={
-            <Suspense fallback={PAGE_LOAD_FALLBACK}><ResetPassword /></Suspense>
+            <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><ResetPassword /></Suspense>
           } />
 
           <Route
             path="/member"
             element={
               <MemberProtectedRoute>
-                <Suspense fallback={PAGE_LOAD_FALLBACK}>
+                <Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}>
                   <MemberLayout />
                 </Suspense>
               </MemberProtectedRoute>
             }
           >
             <Route index element={<Navigate to="/member/dashboard" />} />
-            <Route path="dashboard" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberDashboard /></Suspense>} />
-            <Route path="attendance" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberAttendance /></Suspense>} />
-            <Route path="workouts" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberWorkouts /></Suspense>} />
-            <Route path="diet-plans" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberDietPlans /></Suspense>} />
-            <Route path="plans" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberPlans /></Suspense>} />
-            <Route path="payments" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberPayments /></Suspense>} />
-            <Route path="notifications" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberNotifications /></Suspense>} />
-            <Route path="profile" element={<Suspense fallback={PAGE_LOAD_FALLBACK}><MemberProfile /></Suspense>} />
+            <Route path="dashboard" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberDashboard /></Suspense>} />
+            <Route path="attendance" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberAttendance /></Suspense>} />
+            <Route path="workouts" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberWorkouts /></Suspense>} />
+            <Route path="diet-plans" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberDietPlans /></Suspense>} />
+            <Route path="plans" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberPlans /></Suspense>} />
+            <Route path="payments" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberPayments /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberNotifications /></Suspense>} />
+            <Route path="profile" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#050505' }} />}><MemberProfile /></Suspense>} />
           </Route>
         </Routes>
         </ToastProvider>

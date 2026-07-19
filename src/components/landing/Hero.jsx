@@ -71,23 +71,14 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
 const prefersReducedMotion = () => 
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const Hero = ({ onLoadingComplete }) => {
+const Hero = () => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const videoRef = useRef(null);
   const [videoReady, setVideoReady] = useState(false);
-  const loadingCompleteRef = useRef(false);
 
   const motionEnabled = !prefersReducedMotion();
   const isMobile = isMobileWidth();
-
-  // Signal loading complete immediately — useRef guard prevents double-call
-  useEffect(() => {
-    if (onLoadingComplete && !loadingCompleteRef.current) {
-      loadingCompleteRef.current = true;
-      onLoadingComplete();
-    }
-  }, [onLoadingComplete]);
 
   // Handle video being ready to play — React's onCanPlay avoids race conditions
   const handleVideoReady = () => {

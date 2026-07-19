@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { submitContactForm } from '../../api/contact';
+
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +14,7 @@ const Footer = () => {
     
     setLoading(true);
     try {
+      const { submitContactForm } = await import('../../api/contact');
       await submitContactForm({
         name: 'Newsletter Subscriber',
         email,
