@@ -88,7 +88,7 @@ const PublicLayout = () => {
         </div>
       )}
 
-      {/* Mouse-follow glow effect */}
+      {/* Mouse-follow glow effect — skipped on mobile to avoid framer-motion overhead */}
       <MouseGlow />
 
       {/* Navigation */}
@@ -114,22 +114,36 @@ const PublicLayout = () => {
   );
 };
 
-// Mouse-follow glow component
+// Mouse-follow glow component — renders nothing on mobile/touch to save CPU
 const MouseGlow = () => {
+  const [isTouch, setIsTouch] = useState(true);
   const mouseX = useMotionValue(-500);
   const mouseY = useMotionValue(-500);
-  
   const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
   const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
 
   useEffect(() => {
+    // Detect that this is NOT a touch device by waiting for a real mouse move
+    const handleFirstMouse = () => {
+      setIsTouch(false);
+      window.removeEventListener('mousemove', handleFirstMouse);
+    };
+    window.addEventListener('mousemove', handleFirstMouse, { once: true, passive: true });
+    return () => window.removeEventListener('mousemove', handleFirstMouse);
+  }, []);
+
+  useEffect(() => {
+    if (isTouch) return;
     const handleMouse = (e) => {
       mouseX.set(e.clientX - 200);
       mouseY.set(e.clientY - 200);
     };
     window.addEventListener('mousemove', handleMouse, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouse);
-  }, [mouseX, mouseY]);
+  }, [isTouch, mouseX, mouseY]);
+
+  // Render nothing on touch devices — avoids spring animation overhead
+  if (isTouch) return null;
 
   return (
     <framerMotion.div

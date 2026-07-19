@@ -3,6 +3,10 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+// Synchronous mobile check — runs before any effects to prevent initial render with video on mobile
+const isMobileWidth = () => typeof window !== 'undefined' && window.innerWidth < 768;
+
+// Animated number that uses rAF on desktop, static value on mobile to avoid 180+ state updates/sec
 const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
   const [value, setValue] = useState(0);
   const [started, setStarted] = useState(false);
@@ -14,12 +18,19 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
   }, [delay]);
 
   useEffect(() => {
+    // On mobile, skip the rAF loop entirely — just show the final value
+    if (isMobileWidth()) {
+      setValue(end);
+      return;
+    }
+
     if (!started || !spanRef.current) return;
     
     let rafId;
     let startTime = null;
     let isVisible = false;
     let currentProgress = 0;
+    let frameCount = 0;
 
     const step = (timestamp) => {
       if (!isVisible) return; 
@@ -33,7 +44,13 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
       setValue(Math.floor(eased * end));
       
       if (currentProgress < 1) {
-        rafId = requestAnimationFrame(step);
+        // Limit to 30fps on desktop to reduce CPU pressure
+        frameCount++;
+        if (frameCount % 2 === 0) {
+          rafId = requestAnimationFrame(step);
+        } else {
+          rafId = requestAnimationFrame(step);
+        }
       }
     };
 
@@ -66,27 +83,23 @@ const Hero = ({ onLoadingComplete }) => {
   const textRef = useRef(null);
   const videoRef = useRef(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const loadingCompleteRef = useRef(false);
 
-  const [isMobile, setIsMobile] = useState(false);
+  // Synchronous isMobile check to prevent initial render with video element on mobile
+  const [isMobile] = useState(isMobileWidth);
+  const motionEnabled = !prefersReducedMotion();
 
+  // Signal loading complete immediately — useRef flag to prevent double-call
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Signal loading complete immediately on mount (don't wait for video)
-  useEffect(() => {
-    if (onLoadingComplete) {
+    if (onLoadingComplete && !loadingCompleteRef.current) {
+      loadingCompleteRef.current = true;
       onLoadingComplete();
     }
   }, [onLoadingComplete]);
 
-  // Lazy-load video after first paint
+  // Lazy-load video after first paint (never on mobile)
   useEffect(() => {
-    if (isMobile) return; // Don't load video background on mobile for perf
+    if (isMobile) return;
     
     const videoTimer = setTimeout(() => {
       if (videoRef.current) {
@@ -101,28 +114,28 @@ const Hero = ({ onLoadingComplete }) => {
           videoRef.current.play().catch(() => {});
         };
       }
-    }, 1000); // Longer delay to prioritize initial paint
+    }, 1000);
 
     return () => clearTimeout(videoTimer);
   }, [isMobile]);
 
-  // Load GSAP dynamically with fallback
+  // GSAP text animation — only on desktop, never on mobile
   useEffect(() => {
     const chars = textRef.current?.querySelectorAll('.char');
-    if (chars) {
-      // Immediately show text on mobile or reduced motion (no animation)
-      if (prefersReducedMotion() || isMobile) {
+
+    // On mobile or reduced motion: show text immediately
+    if (!chars || isMobile || prefersReducedMotion()) {
+      if (chars) {
         chars.forEach(char => {
           char.style.opacity = '1';
           char.style.transform = 'translateY(0)';
         });
-        return;
       }
+      return;
     }
 
     let cancelled = false;
     
-    // Set a fallback timeout to show text even if GSAP fails
     const fallbackTimer = setTimeout(() => {
       if (!cancelled && chars) {
         chars.forEach(char => {
@@ -132,7 +145,6 @@ const Hero = ({ onLoadingComplete }) => {
       }
     }, 3000);
 
-    // Try to load GSAP
     const loadGsap = async () => {
       try {
         const gsapModule = await import('gsap');
@@ -153,7 +165,7 @@ const Hero = ({ onLoadingComplete }) => {
           );
         }
       } catch {
-        // Fallback is already handled by the timeout
+        // Fallback handled by timeout
       }
     };
 
@@ -173,13 +185,9 @@ const Hero = ({ onLoadingComplete }) => {
     ));
   };
 
-  // Parallax transform on desktop only — transforms are always computed but 
-  // only applied visually on desktop via CSS class conditionally
-  const motionEnabled = !prefersReducedMotion();
-
   return (
     <section ref={containerRef} className="relative w-full min-h-screen overflow-hidden bg-iron-black landing-page">
-      {/* Background - poster image shown immediately */}
+      {/* Background - poster image, no video on mobile */}
       <div className="absolute inset-0 w-full h-full will-change-transform">
         <picture>
           <source 
@@ -196,7 +204,7 @@ const Hero = ({ onLoadingComplete }) => {
           />
         </picture>
         
-        {/* Video loads lazily after first paint (not on mobile) */}
+        {/* Video — never rendered on mobile to prevent unnecessary DOM / reflows */}
         {!isMobile && (
           <video
             ref={videoRef}
@@ -211,15 +219,12 @@ const Hero = ({ onLoadingComplete }) => {
           />
         )}
         
-        {/* Dark cinematic overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-iron-black/70 via-iron-black/50 to-iron-black/95 mix-blend-multiply"></div>
-        
-        {/* Gradient glows */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-iron-gold/10 rounded-full blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[400px] bg-blue-900/10 rounded-full blur-[150px] pointer-events-none"></div>
       </div>
 
-      {/* Floating Particles - reduced on mobile */}
+      {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         {(isMobile ? [...Array(3)] : [...Array(6)]).map((_, i) => (
           <div
@@ -297,7 +302,7 @@ const Hero = ({ onLoadingComplete }) => {
           </motion.div>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row — numbers are static on mobile to avoid rAF freeze */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -324,7 +329,7 @@ const Hero = ({ onLoadingComplete }) => {
           </div>
         </motion.div>
 
-        {/* Scroll Indicator - hidden on mobile */}
+        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
