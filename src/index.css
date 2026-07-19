@@ -280,6 +280,42 @@ input, textarea, select { font-family: inherit; outline: none; }
   100% { background-position: 200% 0; }
 }
 
+/* Hero and Navbar CSS animations — no framer-motion needed */
+@keyframes heroFadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes navSlideDown {
+  0% { opacity: 0; transform: translateY(-100%); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes menuFadeIn {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.hero-fade-in {
+  opacity: 0;
+}
+
+.scroll-bounce {
+  animation: scrollBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-in { animation: none !important; opacity: 1 !important; }
+  .scroll-bounce { animation: none !important; }
+  header { animation: none !important; }
+}
+
 /* Loading bar animation */
 @keyframes loading-bar {
   0% { transform: translateX(-100%); }
