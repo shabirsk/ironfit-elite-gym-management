@@ -124,8 +124,20 @@ const MouseGlow = () => {
 
 // ─── PublicLayout — renders Hero immediately, lazy-loads everything else ───
 
-const PublicLayout = () => (
-  <>
+const PublicLayout = () => {
+  // Remove the HTML skeleton once React has committed the Hero render.
+  // The skeleton sits OUTSIDE #root so createRoot doesn't clear it.
+  useEffect(() => {
+    const skeleton = document.getElementById('app-skeleton');
+    if (skeleton) {
+      skeleton.style.transition = 'opacity 0.4s ease';
+      skeleton.style.opacity = '0';
+      setTimeout(() => skeleton?.remove(), 400);
+    }
+  }, []);
+
+  return (
+    <>
     <MouseGlow />
     <Navbar />
     <main style={{ position: 'relative', zIndex: 1 }}>
@@ -184,7 +196,8 @@ const PublicLayout = () => (
       <Footer />
     </Suspense>
   </>
-);
+  );
+};
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();

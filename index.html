@@ -48,35 +48,36 @@
     </style>
   </head>
   <body>
-    <div id="root">
-      <!-- Instant hero skeleton — shows before React loads, then React replaces it -->
-      <div class="hero-skeleton" id="hero-skeleton">
-        <div class="hero-skeleton-bg"></div>
-        <div class="hero-skeleton-overlay"></div>
-        <div class="hero-skeleton-content">
-          <div class="hero-skeleton-label">
-            <div class="hero-skeleton-line"></div>
-            <span class="hero-skeleton-text">Premium Fitness Experience</span>
-          </div>
-          <div class="hero-skeleton-title">
-            <div>DOMINATE</div>
-            <div class="outline">YOUR</div>
-            <div class="gold">LIMITS</div>
-          </div>
-          <div class="hero-skeleton-subtitle">Transform your body with world-class coaching, elite trainers, and cutting-edge fitness programs.</div>
-          <div style="display:flex;flex-wrap:wrap;gap:24px">
-            <a href="/member/register" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;background:#FFC107;color:#050505;font-weight:700;font-size:18px;border-radius:0;text-decoration:none">Join The Elite</a>
-            <button style="display:inline-flex;align-items:center;gap:16px;padding:16px 32px;color:#fff;font-size:16px;font-weight:500;background:none;border:none;cursor:pointer">
-              <span style="width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center">
-                <span style="width:0;height:0;border-top:6px solid transparent;border-left:10px solid currentColor;border-bottom:6px solid transparent;margin-left:2px"></span>
-              </span>
-              Watch The Film
-            </button>
-          </div>
+    <div id="root"></div>
+
+    <!-- Instant hero skeleton — OUTSIDE #root so React's createRoot doesn't clear it.
+         Stays visible while JS chunks download, fades out when React mounts. -->
+    <div class="hero-skeleton" id="app-skeleton">
+      <div class="hero-skeleton-bg"></div>
+      <div class="hero-skeleton-overlay"></div>
+      <div class="hero-skeleton-content">
+        <div class="hero-skeleton-label">
+          <div class="hero-skeleton-line"></div>
+          <span class="hero-skeleton-text">Premium Fitness Experience</span>
+        </div>
+        <div class="hero-skeleton-title">
+          <div>DOMINATE</div>
+          <div class="outline">YOUR</div>
+          <div class="gold">LIMITS</div>
+        </div>
+        <div class="hero-skeleton-subtitle">Transform your body with world-class coaching, elite trainers, and cutting-edge fitness programs.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:24px">
+          <a href="/member/register" style="display:inline-flex;align-items:center;gap:8px;padding:16px 32px;background:#FFC107;color:#050505;font-weight:700;font-size:18px;border-radius:0;text-decoration:none">Join The Elite</a>
+          <button style="display:inline-flex;align-items:center;gap:16px;padding:16px 32px;color:#fff;font-size:16px;font-weight:500;background:none;border:none;cursor:pointer">
+            <span style="width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center">
+              <span style="width:0;height:0;border-top:6px solid transparent;border-left:10px solid currentColor;border-bottom:6px solid transparent;margin-left:2px"></span>
+            </span>
+            Watch The Film
+          </button>
         </div>
       </div>
     </div>
-    <!-- React replaces the skeleton when it renders -->
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
