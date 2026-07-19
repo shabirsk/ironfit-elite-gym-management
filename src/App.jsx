@@ -84,6 +84,44 @@ const SectionSkeleton = ({ height = '100vh' }) => (
   </div>
 );
 
+// ─── Mouse-follow glow — returns null on touch to avoid spring overhead ───
+
+const MouseGlow = () => {
+  const [isTouch, setIsTouch] = useState(true);
+  const mouseX = useMotionValue(-500);
+  const mouseY = useMotionValue(-500);
+  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
+  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+
+  useEffect(() => {
+    const handleFirstMouse = () => {
+      setIsTouch(false);
+      window.removeEventListener('mousemove', handleFirstMouse);
+    };
+    window.addEventListener('mousemove', handleFirstMouse, { once: true, passive: true });
+    return () => window.removeEventListener('mousemove', handleFirstMouse);
+  }, []);
+
+  useEffect(() => {
+    if (isTouch) return;
+    const handleMouse = (e) => {
+      mouseX.set(e.clientX - 200);
+      mouseY.set(e.clientY - 200);
+    };
+    window.addEventListener('mousemove', handleMouse, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouse);
+  }, [isTouch, mouseX, mouseY]);
+
+  if (isTouch) return null;
+
+  return (
+    <framerMotion.div
+      className="fixed pointer-events-none z-0 w-[400px] h-[400px] rounded-full bg-iron-gold/5 blur-[100px] mix-blend-screen"
+      style={{ x: smoothX, y: smoothY, willChange: 'transform' }}
+    />
+  );
+};
+
 // ─── PublicLayout — renders Hero immediately, lazy-loads everything else ───
 
 const PublicLayout = () => (
