@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Synchronous mobile check — runs before any effects to prevent initial render with video on mobile
+// Synchronous mobile check — used only for performance-sensitive decisions like AnimatedNumber
 const isMobileWidth = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
-// Animated number that uses rAF on desktop, static value on mobile to avoid 180+ state updates/sec
+// Animated number — uses rAF loop on desktop, static value on mobile to avoid 180+ state updates/sec
 const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
   const [value, setValue] = useState(0);
   const [started, setStarted] = useState(false);
@@ -30,7 +30,6 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
     let startTime = null;
     let isVisible = false;
     let currentProgress = 0;
-    let frameCount = 0;
 
     const step = (timestamp) => {
       if (!isVisible) return; 
@@ -44,13 +43,7 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
       setValue(Math.floor(eased * end));
       
       if (currentProgress < 1) {
-        // Limit to 30fps on desktop to reduce CPU pressure
-        frameCount++;
-        if (frameCount % 2 === 0) {
-          rafId = requestAnimationFrame(step);
-        } else {
-          rafId = requestAnimationFrame(step);
-        }
+        rafId = requestAnimationFrame(step);
       }
     };
 
@@ -82,14 +75,13 @@ const Hero = ({ onLoadingComplete }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const videoRef = useRef(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const loadingCompleteRef = useRef(false);
 
-  // Synchronous isMobile check to prevent initial render with video element on mobile
-  const [isMobile] = useState(isMobileWidth);
   const motionEnabled = !prefersReducedMotion();
+  const isMobile = isMobileWidth();
 
-  // Signal loading complete immediately — useRef flag to prevent double-call
+  // Signal loading complete immediately — useRef guard prevents double-call
   useEffect(() => {
     if (onLoadingComplete && !loadingCompleteRef.current) {
       loadingCompleteRef.current = true;
@@ -97,33 +89,18 @@ const Hero = ({ onLoadingComplete }) => {
     }
   }, [onLoadingComplete]);
 
-  // Lazy-load video after first paint (never on mobile)
-  useEffect(() => {
-    if (isMobile) return;
-    
-    const videoTimer = setTimeout(() => {
-      if (videoRef.current) {
-        const source = document.createElement('source');
-        source.src = 'https://videos.pexels.com/video-files/3255275/3255275-uhd_2560_1440_25fps.mp4';
-        source.type = 'video/mp4';
-        videoRef.current.appendChild(source);
-        videoRef.current.load();
-        
-        videoRef.current.oncanplay = () => {
-          setVideoLoaded(true);
-          videoRef.current.play().catch(() => {});
-        };
-      }
-    }, 1000);
+  // Handle video being ready to play — React's onCanPlay avoids race conditions
+  const handleVideoReady = () => {
+    setVideoReady(true);
+    setTimeout(() => {
+      videoRef.current?.play().catch(() => {});
+    }, 100);
+  };
 
-    return () => clearTimeout(videoTimer);
-  }, [isMobile]);
-
-  // GSAP text animation — only on desktop, never on mobile
+  // GSAP text animation — only on desktop
   useEffect(() => {
     const chars = textRef.current?.querySelectorAll('.char');
 
-    // On mobile or reduced motion: show text immediately
     if (!chars || isMobile || prefersReducedMotion()) {
       if (chars) {
         chars.forEach(char => {
@@ -187,7 +164,7 @@ const Hero = ({ onLoadingComplete }) => {
 
   return (
     <section ref={containerRef} className="relative w-full min-h-screen overflow-hidden bg-iron-black landing-page">
-      {/* Background - poster image, no video on mobile */}
+      {/* Background — poster image visible immediately, video fades in when ready */}
       <div className="absolute inset-0 w-full h-full will-change-transform">
         <picture>
           <source 
@@ -204,20 +181,30 @@ const Hero = ({ onLoadingComplete }) => {
           />
         </picture>
         
-        {/* Video — never rendered on mobile to prevent unnecessary DOM / reflows */}
-        {!isMobile && (
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="none"
-            className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-500 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
-            poster=""
-            style={{ willChange: 'transform' }}
+        {/* Background video — plays on ALL devices. Lightweight 720p source for mobile, 1080p for desktop. */}
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onCanPlay={handleVideoReady}
+          className={`w-full h-full object-cover object-center absolute inset-0 transition-opacity duration-700 ${videoReady ? 'opacity-100' : 'opacity-0'}`}
+          style={{ willChange: 'transform' }}
+        >
+          {/* Mobile-first: 720p @ 2.5 MB — under the 3 MB target */}
+          <source 
+            src="https://videos.pexels.com/video-files/3255275/3255275-hd_1280_720_25fps.mp4" 
+            type="video/mp4" 
+            media="(max-width: 768px)" 
           />
-        )}
+          {/* Desktop: 1080p @ 4.5 MB */}
+          <source 
+            src="https://videos.pexels.com/video-files/3255275/3255275-hd_1920_1080_25fps.mp4" 
+            type="video/mp4" 
+          />
+        </video>
         
         <div className="absolute inset-0 bg-gradient-to-b from-iron-black/70 via-iron-black/50 to-iron-black/95 mix-blend-multiply"></div>
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-iron-gold/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -302,7 +289,7 @@ const Hero = ({ onLoadingComplete }) => {
           </motion.div>
         </div>
 
-        {/* Stats Row — numbers are static on mobile to avoid rAF freeze */}
+        {/* Stats Row */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
