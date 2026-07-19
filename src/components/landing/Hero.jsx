@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -58,14 +58,15 @@ const AnimatedNumber = ({ end, duration = 3, delay = 0 }) => {
   return <span ref={spanRef}>{value}</span>;
 };
 
+const prefersReducedMotion = () => 
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const Hero = ({ onLoadingComplete }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const videoRef = useRef(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const prefersReducedMotion = useCallback(() => 
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, 
-  []);
+
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -105,12 +106,11 @@ const Hero = ({ onLoadingComplete }) => {
     return () => clearTimeout(videoTimer);
   }, [isMobile]);
 
-  // Load GSAP dynamically with fallback - race GSAP load vs timeout
+  // Load GSAP dynamically with fallback
   useEffect(() => {
-    // First, show the text immediately as a fallback
     const chars = textRef.current?.querySelectorAll('.char');
     if (chars) {
-      // Immediately show text on mobile (no animation)
+      // Immediately show text on mobile or reduced motion (no animation)
       if (prefersReducedMotion() || isMobile) {
         chars.forEach(char => {
           char.style.opacity = '1';
@@ -163,7 +163,7 @@ const Hero = ({ onLoadingComplete }) => {
       cancelled = true;
       clearTimeout(fallbackTimer);
     };
-  }, [prefersReducedMotion, isMobile]);
+  }, [isMobile]);
 
   const splitText = (text) => {
     return text.split('').map((char, index) => (
@@ -173,10 +173,9 @@ const Hero = ({ onLoadingComplete }) => {
     ));
   };
 
-  // Disable parallax on mobile for performance
-  const { scrollY } = useScroll();
-  const heroY = !isMobile ? useTransform(scrollY, [0, 500], [0, 150]) : { get: () => 0 };
-  const heroOpacity = !isMobile ? useTransform(scrollY, [0, 300], [1, 0.8]) : { get: () => 1 };
+  // Parallax transform on desktop only — transforms are always computed but 
+  // only applied visually on desktop via CSS class conditionally
+  const motionEnabled = !prefersReducedMotion();
 
   return (
     <section ref={containerRef} className="relative w-full min-h-screen overflow-hidden bg-iron-black landing-page">
@@ -243,7 +242,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 0.1 }}
+            transition={{ duration: motionEnabled ? 0.6 : 0, delay: motionEnabled ? 0.1 : 0 }}
             className="flex items-center gap-4 mb-6"
           >
             <div className="w-12 h-[2px] bg-iron-gold"></div>
@@ -266,7 +265,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 1.2 }}
+            transition={{ duration: motionEnabled ? 0.6 : 0, delay: motionEnabled ? 1.2 : 0 }}
             className="text-xl md:text-2xl text-iron-light/70 max-w-2xl mb-12 font-light leading-relaxed"
           >
             Transform your body with world-class coaching, elite trainers, and cutting-edge fitness programs.
@@ -276,7 +275,7 @@ const Hero = ({ onLoadingComplete }) => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: prefersReducedMotion() ? 0 : 0.6, delay: prefersReducedMotion() ? 0 : 1.4 }}
+            transition={{ duration: motionEnabled ? 0.6 : 0, delay: motionEnabled ? 1.4 : 0 }}
             className="flex flex-col sm:flex-row gap-6"
           >
             <Link
@@ -302,7 +301,7 @@ const Hero = ({ onLoadingComplete }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: prefersReducedMotion() ? 0 : 0.8, delay: prefersReducedMotion() ? 0 : 1.8 }}
+          transition={{ duration: motionEnabled ? 0.8 : 0, delay: motionEnabled ? 1.8 : 0 }}
           className="absolute bottom-12 left-6 right-6 md:left-auto md:right-12 flex items-center gap-8 md:gap-16 border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-12"
         >
           <div>
@@ -328,13 +327,13 @@ const Hero = ({ onLoadingComplete }) => {
         {/* Scroll Indicator - hidden on mobile */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: prefersReducedMotion() ? 1 : 1 }}
-          transition={{ duration: prefersReducedMotion() ? 0 : 1, delay: prefersReducedMotion() ? 0 : 2.5 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: motionEnabled ? 1 : 0, delay: motionEnabled ? 2.5 : 0 }}
           className="absolute bottom-12 left-1/2 -translate-x-1/2 flex-col items-center gap-2 hidden md:flex"
         >
           <span className="text-[10px] uppercase tracking-[0.2em] text-iron-light/40" style={{ writingMode: 'vertical-rl' }}>Scroll</span>
           <motion.div
-            animate={prefersReducedMotion() ? {} : { y: [0, 10, 0] }}
+            animate={motionEnabled ? { y: [0, 10, 0] } : {}}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <ChevronDown size={16} className="text-iron-gold" />
